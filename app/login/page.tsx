@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import LoginForm from '@/components/auth/LoginForm'
 import SignupForm from '@/components/auth/SignupForm'
@@ -15,7 +15,7 @@ const errorFromParams = (params: URLSearchParams) => {
   return ''
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [panel, setPanel] = useState<Panel>('login')
@@ -101,5 +101,13 @@ export default function LoginPage() {
         {panel === 'email-sent' && <EmailSentPanel email={registeredEmail} onVerified={handleVerified} />}
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   )
 }
