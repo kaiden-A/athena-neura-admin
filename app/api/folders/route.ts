@@ -1,34 +1,70 @@
 import { NextResponse } from 'next/server'
-import { getFolders, setFolders } from '@/lib/store'
+import { cookies } from 'next/headers'
 import type { KnowledgeFolder } from '@/lib/types'
 
+const BACKEND_URL = process.env.BACKEND_URL!
+
+function extractArray(json: unknown): unknown[] {
+  if (Array.isArray(json)) return json
+  if (json && typeof json === 'object') {
+    const obj = json as Record<string, unknown>
+    if (Array.isArray(obj.data)) return obj.data
+    if (Array.isArray(obj.folders)) return obj.folders
+    if (Array.isArray(obj.topics)) return obj.topics
+    if (Array.isArray(obj.items)) return obj.items
+    if (Array.isArray(obj.records)) return obj.records
+  }
+  return []
+}
+
+function mapTopicToFolder(topic: Record<string, unknown>): KnowledgeFolder {
+  return {
+    id: (topic.topicid as string) || '',
+    title: (topic.name as string) || '',
+    description: (topic.description as string) || '',
+    badge: 'TOPIC',
+    preset: 'light',
+    icon: 'folder',
+  }
+}
+
 export async function GET() {
-  return NextResponse.json({ folders: getFolders() })
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth-token')?.value
+
+  if (!token) {
+    return NextResponse.json({ folders: [] }, { status: 200 })
+  }
+
+  const res = await fetch(`${BACKEND_URL}/api/v1/rag/topics`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  const json = await res.json()
+  const items = extractArray(json) as Record<string, unknown>[]
+  const folders = items.map(mapTopicToFolder)
+  return NextResponse.json({ folders })
 }
 
 export async function POST(request: Request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth-token')?.value
+
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = await request.json()
-  const { title, badge, description, preset, icon } = body
 
-  const id = title
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
+  const res = await fetch(`${BACKEND_URL}/api/v1/rag/topics`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  })
 
-  const folders = getFolders()
-  if (folders.find((f) => f.id === id)) {
-    return NextResponse.json({ error: 'A folder with this title already exists.' }, { status: 409 })
-  }
-
-  const folder: KnowledgeFolder = {
-    id,
-    title: title || 'Untitled',
-    badge: (badge || 'DOC').toUpperCase(),
-    description: description || '',
-    preset: preset || 'light',
-    icon: icon || 'folder',
-  }
-
-  setFolders([...folders, folder])
-  return NextResponse.json({ folder }, { status: 201 })
+  const json = await res.json()
+  return NextResponse.json(json, { status: res.status })
 }

@@ -34,3 +34,4 @@ export default function EmailSentPanel({ email, onVerified }: EmailSentPanelProp
     </div>
   )
 }
+

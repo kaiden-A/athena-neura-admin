@@ -19,7 +19,7 @@ interface FAQModalProps {
 export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedFolderId }: FAQModalProps) {
   const { showToast } = useToast()
   const [folders, setFolders] = useState<KnowledgeFolder[]>([])
-  const [folderId, setFolderId] = useState(preselectedFolderId || '')
+  const [topicId, setTopicId] = useState(preselectedFolderId || '')
   const [isVerified, setIsVerified] = useState(false)
   const [visibility, setVisibility] = useState<FAQVisibility>('public')
   const [question, setQuestion] = useState('')
@@ -32,13 +32,13 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
     if (open) {
       fetch('/api/folders').then((r) => r.json()).then((d) => setFolders(d.folders))
       if (editFaq) {
-        setFolderId(editFaq.folderId)
+        setTopicId(editFaq.folderId)
         setIsVerified(editFaq.isVerified)
         setVisibility(editFaq.visibility)
         setQuestion(editFaq.question)
         setAnswer(editFaq.answer)
       } else {
-        setFolderId(preselectedFolderId || '')
+        setTopicId(preselectedFolderId || '')
         setIsVerified(false)
         setVisibility('public')
         setQuestion('')
@@ -48,26 +48,38 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
   }, [open, editFaq, preselectedFolderId])
 
   async function handleSubmit() {
-    if (!folderId || !question.trim() || !answer.trim()) return
+    if (!topicId || !question.trim() || !answer.trim()) return
     setSubmitting(true)
     try {
-      const payload = {
-        folderId,
-        isVerified,
-        visibility,
-        question: question.trim(),
-        answer: answer.trim(),
+      let res: Response
+
+      if (isEditing && editFaq) {
+        res = await fetch(`/api/faqs/${editFaq.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            folderId: topicId,
+            isVerified,
+            visibility,
+            question: question.trim(),
+            answer: answer.trim(),
+          }),
+        })
+      } else {
+        res = await fetch('/api/faqs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topicId,
+            question: question.trim(),
+            answer: answer.trim(),
+            visibility,
+          }),
+        })
       }
 
-      const method = isEditing && editFaq ? 'PUT' : 'POST'
-      const url = isEditing && editFaq ? `/api/faqs/${editFaq.id}` : '/api/faqs'
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
       const result = await res.json()
-      if (!res.ok) throw new Error(result.error)
+      if (!res.ok) throw new Error(result.error || 'Failed to save FAQ.')
       showToast(isEditing ? 'FAQ updated successfully.' : 'FAQ created successfully.')
 
       onSaved()
@@ -90,7 +102,7 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting || !folderId || !question.trim() || !answer.trim()}>
+          <Button onClick={handleSubmit} disabled={submitting || !topicId || !question.trim() || !answer.trim()}>
             {submitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create'}
           </Button>
         </>
@@ -99,10 +111,10 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
       <div className="space-y-4" data-faq-action={isEditing ? 'edit' : 'create'} data-faq-id={editFaq?.id || ''}>
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">
-            Topic Folder
+            Topic
           </label>
-          <Select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
-            <option value="">Select a folder...</option>
+          <Select value={topicId} onChange={(e) => setTopicId(e.target.value)}>
+            <option value="">Select a topic...</option>
             {folders.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.title}
@@ -110,15 +122,17 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
             ))}
           </Select>
         </div>
-        <div>
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">
-            Status
-          </label>
-          <Select value={isVerified ? 'verified' : 'draft'} onChange={(e) => setIsVerified(e.target.value === 'verified')}>
-            <option value="draft">Draft</option>
-            <option value="verified">AI Verified</option>
-          </Select>
-        </div>
+        {isEditing && (
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">
+              Status
+            </label>
+            <Select value={isVerified ? 'verified' : 'draft'} onChange={(e) => setIsVerified(e.target.value === 'verified')}>
+              <option value="draft">Draft</option>
+              <option value="verified">AI Verified</option>
+            </Select>
+          </div>
+        )}
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">
             Visibility
