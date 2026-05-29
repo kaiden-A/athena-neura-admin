@@ -2,17 +2,17 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getStoredToken } from '@/lib/api/auth'
 
 export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    if (getStoredToken()) {
-      router.replace('/dashboard')
-    } else {
-      router.replace('/login')
-    }
+    fetch('/api/auth/me')
+      .then((res) => {
+        if (res.ok) router.replace('/dashboard')
+        else router.replace('/login')
+      })
+      .catch(() => router.replace('/login'))
   }, [router])
 
   return null

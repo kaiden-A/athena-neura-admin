@@ -7,8 +7,6 @@ import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import FAQList from '@/components/faqs/FAQList'
 import FAQModal from '@/components/faqs/FAQModal'
-import { fetchFolders } from '@/lib/api/folders'
-import { fetchFAQs, deleteFAQ } from '@/lib/api/faqs'
 import { useToast } from '@/lib/toast-context'
 import type { KnowledgeFolder, FAQArticle } from '@/lib/types'
 
@@ -24,15 +22,18 @@ export default function FolderDetailPage() {
   const [editFaq, setEditFaq] = useState<FAQArticle | null>(null)
 
   useEffect(() => {
-    fetchFolders().then((f) => {
-      const found = f.find((x) => x.id === folderId)
+    fetch('/api/folders').then((r) => r.json()).then((d) => {
+      const found = d.folders.find((x: KnowledgeFolder) => x.id === folderId)
       setFolder(found || null)
     })
     loadFAQs()
   }, [folderId])
 
   function loadFAQs() {
-    fetchFAQs({ folderId, q: searchQuery || undefined }).then(setFaqs)
+    const params = new URLSearchParams()
+    if (folderId) params.set('folderId', folderId)
+    if (searchQuery) params.set('q', searchQuery)
+    fetch(`/api/faqs?${params}`).then((r) => r.json()).then((d) => setFaqs(d.faqs))
   }
 
   useEffect(() => {
@@ -45,12 +46,11 @@ export default function FolderDetailPage() {
     setFaqModalOpen(true)
   }
 
-  function handleDelete(faq: FAQArticle) {
+  async function handleDelete(faq: FAQArticle) {
     if (confirm(`Delete FAQ: "${faq.question}"?`)) {
-      deleteFAQ(faq.id).then(() => {
-        showToast('FAQ deleted successfully.')
-        loadFAQs()
-      })
+      await fetch(`/api/faqs/${faq.id}`, { method: 'DELETE' })
+      showToast('FAQ deleted successfully.')
+      loadFAQs()
     }
   }
 

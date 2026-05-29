@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { login } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
 
 interface LoginFormProps {
@@ -21,17 +20,20 @@ export default function LoginForm({ onError }: LoginFormProps) {
     setLoading(true)
     onError('')
 
-    const result = await login({ email, password })
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
 
-    if (result.error) {
-      onError(result.error)
+    const result = await res.json()
+
+    if (!res.ok) {
+      onError(result.error || 'Login failed.')
       setLoading(false)
       return
     }
 
-    localStorage.setItem('athena-token', result.token)
-    localStorage.setItem('athena-user', JSON.stringify(result.user))
-    document.cookie = `session=${result.token}; path=/; max-age=86400`
     router.push('/dashboard')
   }
 

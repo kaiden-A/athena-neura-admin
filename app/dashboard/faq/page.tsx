@@ -8,7 +8,6 @@ import FolderGrid from '@/components/folders/FolderGrid'
 import CreateFolderModal from '@/components/folders/CreateFolderModal'
 import FAQModal from '@/components/faqs/FAQModal'
 import StatsBar from '@/components/StatsBar'
-import { fetchFolders } from '@/lib/api/folders'
 import { useGlobalSearch } from '@/lib/search-context'
 import type { KnowledgeFolder } from '@/lib/types'
 
@@ -22,7 +21,7 @@ export default function FAQDirectoryPage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    fetchFolders().then(setFolders)
+    fetch('/api/folders').then((r) => r.json()).then((d) => setFolders(d.folders))
   }, [refreshKey])
 
   useEffect(() => {

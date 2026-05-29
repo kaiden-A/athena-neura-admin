@@ -1,8 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { BookOpen, Terminal, Code, Activity, Plus, Cpu, LogOut, User } from 'lucide-react'
-import { clearSession, getStoredUser } from '@/lib/api/auth'
+import { BookOpen, Terminal, Code, Activity, Plus, LogOut, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { User as UserType } from '@/lib/types'
 
@@ -23,7 +22,12 @@ export default function Sidebar({ onNewEntry }: SidebarProps) {
   const [user, setUser] = useState<UserType | null>(null)
 
   useEffect(() => {
-    setUser(getStoredUser())
+    fetch('/api/auth/me')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.user) setUser(data.user)
+      })
+      .catch(() => {})
   }, [])
 
   const activeSection = pathname.split('/')[2] || 'faq'
@@ -32,8 +36,8 @@ export default function Sidebar({ onNewEntry }: SidebarProps) {
     router.push(`/dashboard/${section === 'faq' ? '' : section}`)
   }
 
-  function handleLogout() {
-    clearSession()
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
   }
 

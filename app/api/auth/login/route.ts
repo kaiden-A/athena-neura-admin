@@ -1,17 +1,55 @@
 import { NextResponse } from 'next/server'
-import { getUsers } from '@/lib/store'
+import { jwtVerify } from 'jose'
+
+const BACKEND_URL = process.env.BACKEND_URL!
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
+
+async function decodeJWTPayload(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET)
+    return payload
+  } catch {
+    return null
+  }
+}
 
 export async function POST(request: Request) {
-  const { email, password } = await request.json()
+  const body = await request.json()
 
-  const users = getUsers()
-  const user = users.find((u) => u.email === email)
+  const res = await fetch(`${BACKEND_URL}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
 
-  if (!user || password !== 'admin123') {
-    return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 })
+  const json = await res.json()
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: json.message || json.error || 'Login failed.' },
+      { status: res.status }
+    )
   }
 
-  const token = 'mock-token-' + Date.now()
+  const accessToken = json.access_token || json.token
 
-  return NextResponse.json({ user, token })
+  const decoded = await decodeJWTPayload(accessToken)
+  console.log(decoded);
+
+  const response = NextResponse.json({
+    user: {
+      email: (decoded?.email as string) || body.email,
+      name: (decoded?.name as string) || (decoded?.sub as string) || '',
+    },
+  })
+
+  response.cookies.set('auth-token', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24,
+  })
+
+  return response
 }

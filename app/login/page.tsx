@@ -1,25 +1,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Cpu } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LoginForm from '@/components/auth/LoginForm'
 import SignupForm from '@/components/auth/SignupForm'
 import EmailSentPanel from '@/components/auth/EmailSentPanel'
-import { getStoredToken } from '@/lib/api/auth'
 
 type Panel = 'login' | 'signup' | 'email-sent'
 
+const errorFromParams = (params: URLSearchParams) => {
+  const err = params.get('error')
+  if (err === 'invalid_token') return 'Verification link is invalid or expired.'
+  if (err === 'missing_token') return 'Invalid verification link.'
+  return ''
+}
+
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [panel, setPanel] = useState<Panel>('login')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(() => errorFromParams(searchParams))
   const [registeredEmail, setRegisteredEmail] = useState('')
 
   useEffect(() => {
-    if (getStoredToken()) {
-      router.replace('/dashboard')
-    }
+    fetch('/api/auth/me')
+      .then((res) => {
+        if (res.ok) router.replace('/dashboard')
+      })
+      .catch(() => {})
   }, [router])
 
   function handleSignupSuccess(email: string) {

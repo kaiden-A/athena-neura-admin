@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { signup } from '@/lib/api/auth'
 
 interface SignupFormProps {
   onSuccess: (email: string) => void
@@ -21,10 +20,16 @@ export default function SignupForm({ onSuccess, onError }: SignupFormProps) {
     setLoading(true)
     onError('')
 
-    const result = await signup({ name, email, password })
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    })
 
-    if (result.error) {
-      onError(result.error)
+    const result = await res.json()
+
+    if (!res.ok) {
+      onError(result.error || 'Signup failed.')
       setLoading(false)
       return
     }

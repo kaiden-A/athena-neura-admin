@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
-import { createFolder } from '@/lib/api/folders'
 import { useToast } from '@/lib/toast-context'
 import type { FolderPreset } from '@/lib/types'
 
@@ -38,13 +37,19 @@ export default function CreateFolderModal({ open, onClose, onCreated }: CreateFo
     if (!title.trim()) return
     setSubmitting(true)
     try {
-      await createFolder({
-        title: title.trim(),
-        badge: badge.toUpperCase(),
-        description: description.trim(),
-        preset,
-        icon: presetIcons[preset],
+      const res = await fetch('/api/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          badge: badge.toUpperCase(),
+          description: description.trim(),
+          preset,
+          icon: presetIcons[preset],
+        }),
       })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error)
       showToast('Folder created successfully.')
       onCreated()
       onClose()

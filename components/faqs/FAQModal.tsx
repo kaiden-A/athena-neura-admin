@@ -5,8 +5,6 @@ import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { Input, Textarea, Select } from '@/components/ui/Input'
 import VisibilityToggle from '@/components/ui/VisibilityToggle'
-import { createFAQ, updateFAQ } from '@/lib/api/faqs'
-import { fetchFolders } from '@/lib/api/folders'
 import { useToast } from '@/lib/toast-context'
 import type { FAQArticle, FAQVisibility, KnowledgeFolder } from '@/lib/types'
 
@@ -32,7 +30,7 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
 
   useEffect(() => {
     if (open) {
-      fetchFolders().then(setFolders)
+      fetch('/api/folders').then((r) => r.json()).then((d) => setFolders(d.folders))
       if (editFaq) {
         setFolderId(editFaq.folderId)
         setIsVerified(editFaq.isVerified)
@@ -61,13 +59,16 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
         answer: answer.trim(),
       }
 
-      if (isEditing && editFaq) {
-        await updateFAQ(editFaq.id, payload)
-        showToast('FAQ updated successfully.')
-      } else {
-        await createFAQ(payload)
-        showToast('FAQ created successfully.')
-      }
+      const method = isEditing && editFaq ? 'PUT' : 'POST'
+      const url = isEditing && editFaq ? `/api/faqs/${editFaq.id}` : '/api/faqs'
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error)
+      showToast(isEditing ? 'FAQ updated successfully.' : 'FAQ created successfully.')
 
       onSaved()
       onClose()

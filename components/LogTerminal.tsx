@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { fetchLogs } from '@/lib/api/logs'
 import type { LogEntry } from '@/lib/types'
 
 const levelColors: Record<string, string> = {
@@ -16,7 +15,7 @@ export default function LogTerminal() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetchLogs().then(setLogs)
+    fetch('/api/logs').then((r) => r.json()).then((d) => setLogs(d.logs))
   }, [])
 
   useEffect(() => {

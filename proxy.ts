@@ -2,17 +2,17 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function proxy(request: NextRequest) {
-  const session = request.cookies.get('session')?.value
+  const token = request.cookies.get('auth-token')?.value
   const { pathname } = request.nextUrl
 
   const isDashboardRoute = pathname.startsWith('/dashboard')
   const isLoginRoute = pathname === '/login'
 
-  if (isDashboardRoute && !session) {
+  if (isDashboardRoute && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (isLoginRoute && session) {
+  if (isLoginRoute && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

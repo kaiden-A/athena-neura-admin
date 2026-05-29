@@ -1,20 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { fetchStats } from '@/lib/api/stats'
 import type { Stats } from '@/lib/types'
 
 export default function StatsBar() {
   const [stats, setStats] = useState<Stats | null>(null)
 
+  function loadStats() {
+    fetch('/api/stats').then((r) => r.json()).then(setStats)
+  }
+
   useEffect(() => {
-    fetchStats().then(setStats)
+    loadStats()
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchStats().then(setStats)
-    }, 5000)
+    const interval = setInterval(loadStats, 5000)
     return () => clearInterval(interval)
   }, [])
 
