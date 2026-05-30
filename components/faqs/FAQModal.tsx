@@ -58,11 +58,11 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            folderId: topicId,
-            isVerified,
-            visibility,
+            topicId,
             question: question.trim(),
             answer: answer.trim(),
+            visibility,
+            assistant: '',
           }),
         })
       } else {

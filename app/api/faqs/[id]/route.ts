@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getFAQs, setFAQs } from '@/lib/store'
+import { getFAQs } from '@/lib/store'
 
 const BACKEND_URL = process.env.BACKEND_URL!
 
@@ -24,24 +24,26 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth-token')?.value
+
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = await request.json()
-  const faqs = getFAQs()
-  const index = faqs.findIndex((f) => f.id === id)
 
-  if (index === -1) {
-    return NextResponse.json({ error: 'FAQ not found.' }, { status: 404 })
-  }
+  const res = await fetch(`${BACKEND_URL}/api/v1/rag/qa/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  })
 
-  const updated = {
-    ...faqs[index],
-    ...body,
-    updatedAt: new Date().toISOString(),
-  }
-  const newFaqs = [...faqs]
-  newFaqs[index] = updated
-  setFAQs(newFaqs)
-
-  return NextResponse.json({ faq: updated })
+  const json = await res.json()
+  return NextResponse.json(json, { status: res.status })
 }
 
 export async function DELETE(
