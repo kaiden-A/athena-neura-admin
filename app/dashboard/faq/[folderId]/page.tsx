@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ChevronLeft, Plus, Search } from 'lucide-react'
+import { ChevronLeft, Plus, Search, AlertTriangle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
+import Modal from '@/components/ui/Modal'
 import FAQList from '@/components/faqs/FAQList'
 import FAQModal from '@/components/faqs/FAQModal'
 import { useToast } from '@/lib/toast-context'
@@ -20,6 +21,7 @@ export default function FolderDetailPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [faqModalOpen, setFaqModalOpen] = useState(false)
   const [editFaq, setEditFaq] = useState<FAQArticle | null>(null)
+  const [deleteFaq, setDeleteFaq] = useState<FAQArticle | null>(null)
 
   useEffect(() => {
     fetch('/api/folders').then((r) => r.json()).then((d) => {
@@ -46,12 +48,16 @@ export default function FolderDetailPage() {
     setFaqModalOpen(true)
   }
 
-  async function handleDelete(faq: FAQArticle) {
-    if (confirm(`Delete FAQ: "${faq.question}"?`)) {
-      await fetch(`/api/faqs/${faq.id}`, { method: 'DELETE' })
-      showToast('FAQ deleted successfully.')
-      loadFAQs()
-    }
+  function handleDelete(faq: FAQArticle) {
+    setDeleteFaq(faq)
+  }
+
+  async function confirmDelete() {
+    if (!deleteFaq) return
+    await fetch(`/api/faqs/${deleteFaq.id}`, { method: 'DELETE' })
+    showToast('FAQ deleted successfully.')
+    setDeleteFaq(null)
+    loadFAQs()
   }
 
   function handleSaved() {
@@ -107,6 +113,28 @@ export default function FolderDetailPage() {
       </div>
 
       <FAQList faqs={faqs} onEdit={handleEdit} onDelete={handleDelete} />
+
+      <Modal
+        open={!!deleteFaq}
+        onClose={() => setDeleteFaq(null)}
+        title="Delete FAQ"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDeleteFaq(null)}>Cancel</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={confirmDelete}>Delete</Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 text-red-500">
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <p className="text-sm text-accent font-medium">Are you sure you want to delete this FAQ?</p>
+            <p className="text-sm text-muted mt-1">{deleteFaq?.question}</p>
+          </div>
+        </div>
+      </Modal>
 
       <FAQModal
         open={faqModalOpen}
