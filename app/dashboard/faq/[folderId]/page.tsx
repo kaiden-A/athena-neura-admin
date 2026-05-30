@@ -97,7 +97,7 @@ export default function FolderDetailPage() {
           }}
         >
           <Plus size={14} />
-          Add FAQ
+          Add Knowledge
         </Button>
       </div>
 

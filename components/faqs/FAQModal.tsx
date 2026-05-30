@@ -146,7 +146,7 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
         </div>
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">
-            Question
+            Question/Context
           </label>
           <Input
             value={question}
@@ -156,7 +156,7 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
         </div>
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1.5">
-            Answer
+            Answer/Content
           </label>
           <Textarea
             value={answer}
