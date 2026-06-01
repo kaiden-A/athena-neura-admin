@@ -3,34 +3,38 @@
 import { useEffect, useState } from 'react'
 import type { Stats } from '@/lib/types'
 
+async function fetchStats(): Promise<Stats | null> {
+  try {
+    const res = await fetch('/api/stats')
+    if (!res.ok) return null
+    const data = await res.json()
+    if (typeof data.totalArticles === 'number' && typeof data.totalFolders === 'number') {
+      return data
+    }
+  } catch {}
+  return null
+}
+
 export default function StatsBar() {
   const [stats, setStats] = useState<Stats | null>(null)
 
-  function loadStats() {
-    fetch('/api/stats').then((r) => r.json()).then(setStats)
-  }
-
   useEffect(() => {
-    loadStats()
-  }, [])
+    fetchStats().then(setStats)
 
-  useEffect(() => {
-    const interval = setInterval(loadStats, 5000)
+    const interval = setInterval(() => {
+      fetchStats().then(setStats)
+    }, 5000)
+
     return () => clearInterval(interval)
   }, [])
-
-  if (!stats) return null
 
   return (
     <div className="flex items-center gap-6 text-xs text-muted">
       <span>
-        <strong className="text-accent">{stats.totalArticles}</strong> Articles
+        <strong className="text-accent">{stats?.totalArticles ?? '—'}</strong> Articles
       </span>
       <span>
-        <strong className="text-accent">{stats.totalFolders}</strong> Folders
-      </span>
-      <span>
-        <strong className="text-accent">{stats.verifiedCount}</strong> Verified
+        <strong className="text-accent">{stats?.totalFolders ?? '—'}</strong> Folders
       </span>
       <span className="flex items-center gap-1.5">
         <span className="relative flex h-2 w-2">
