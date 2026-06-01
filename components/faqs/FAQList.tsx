@@ -15,8 +15,8 @@ export default function FAQList({ faqs, onEdit, onDelete }: FAQListProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-border rounded-xl text-muted">
         <HelpCircle size={36} className="text-subtle mb-3" />
-        <p className="text-sm font-medium">No FAQs yet</p>
-        <p className="text-xs text-subtle mt-1">Add your first FAQ entry to this folder.</p>
+        <p className="text-sm font-medium">No Knowledge yet</p>
+        <p className="text-xs text-subtle mt-1">Add your first knowledge entry to this folder.</p>
       </div>
     )
   }

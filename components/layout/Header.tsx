@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useGlobalSearch } from '@/lib/search-context'
 
 const sectionTitles: Record<string, string> = {
-  faq: 'FAQ Library',
+  faq: 'Knowledge',
   instructions: 'Instructions',
   metadata: 'Metadata / API Schema',
   logs: 'System Logs',
@@ -16,7 +16,7 @@ export default function Header() {
   const { globalSearch, setGlobalSearch } = useGlobalSearch()
   const segment = pathname.split('/')[2] || 'faq'
   const isFolderDetail = pathname.includes('/faq/') && pathname.split('/faq/')[1]?.length > 0
-  const title = isFolderDetail ? 'FAQ Folder' : (sectionTitles[segment] || 'Dashboard')
+  const title = isFolderDetail ? 'Knowledge Folder' : (sectionTitles[segment] || 'Dashboard')
   const showSearch = segment === 'faq' && !isFolderDetail
 
   return (

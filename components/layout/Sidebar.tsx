@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import type { User as UserType } from '@/lib/types'
 
 const navItems = [
-  { label: 'FAQ Library', icon: BookOpen, section: 'faq' },
+  { label: 'Knowledge', icon: BookOpen, section: 'faq' },
   { label: 'Instructions', icon: Terminal, section: 'instructions' },
   { label: 'Metadata', icon: Code, section: 'metadata' },
   { label: 'System Logs', icon: Activity, section: 'logs' },

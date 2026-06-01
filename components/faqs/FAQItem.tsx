@@ -27,14 +27,14 @@ export default function FAQItem({ faq, onEdit, onDelete }: FAQItemProps) {
           <button
             onClick={onEdit}
             className="p-[6px] rounded-md text-muted hover:bg-[#f0f0ee] hover:text-accent transition-all"
-            title="Edit FAQ"
+            title="Edit Knowledge"
           >
             <Edit3 size={14} />
           </button>
           <button
             onClick={onDelete}
             className="p-[6px] rounded-md text-muted hover:bg-[#fef2f2] hover:text-red-600 transition-all"
-            title="Delete FAQ"
+            title="Delete Knowledge"
           >
             <Trash2 size={14} />
           </button>

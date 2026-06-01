@@ -79,13 +79,13 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
       }
 
       const result = await res.json()
-      if (!res.ok) throw new Error(result.error || 'Failed to save FAQ.')
-      showToast(isEditing ? 'FAQ updated successfully.' : 'FAQ created successfully.')
+      if (!res.ok) throw new Error(result.error || 'Failed to save Knowledge.')
+      showToast(isEditing ? 'Knowledge updated successfully.' : 'Knowledge created successfully.')
 
       onSaved()
       onClose()
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to save FAQ.'
+      const msg = err instanceof Error ? err.message : 'Failed to save Knowledge.'
       showToast(msg)
     } finally {
       setSubmitting(false)
@@ -96,7 +96,7 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
     <Modal
       open={open}
       onClose={onClose}
-      title={isEditing ? 'Edit FAQ Entry' : 'Add FAQ Entry'}
+      title={isEditing ? 'Edit Knowledge Entry' : 'Add Knowledge Entry'}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
@@ -151,7 +151,7 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
           <Input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Enter the FAQ question..."
+            placeholder="Enter the question..."
           />
         </div>
         <div>

@@ -5,7 +5,7 @@ export default function MetadataPage() {
     <div className="fade-in">
       <h2 className="text-lg font-semibold text-accent mb-4">Metadata / API Schema</h2>
       <p className="text-xs text-muted mb-4">
-        The LLM consumption endpoint returns public, verified FAQs grouped by folder for efficient ingestion.
+        The LLM consumption endpoint returns public, verified knowledge entries grouped by folder for efficient ingestion.
       </p>
 
       <div className="space-y-4">

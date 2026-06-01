@@ -55,7 +55,7 @@ export default function FolderDetailPage() {
   async function confirmDelete() {
     if (!deleteFaq) return
     await fetch(`/api/faqs/${deleteFaq.id}`, { method: 'DELETE' })
-    showToast('FAQ deleted successfully.')
+    showToast('Knowledge deleted successfully.')
     setDeleteFaq(null)
     loadFAQs()
   }
@@ -105,7 +105,7 @@ export default function FolderDetailPage() {
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
         <input
           type="text"
-          placeholder="Search FAQs..."
+          placeholder="Search Knowledge..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-9 pr-3 py-[7px] text-sm border border-border rounded-lg bg-white text-accent placeholder:text-subtle focus:outline-none focus:border-indigo-500 focus:ring-[3px] focus:ring-indigo-500/20 transition-all duration-150"
@@ -117,7 +117,7 @@ export default function FolderDetailPage() {
       <Modal
         open={!!deleteFaq}
         onClose={() => setDeleteFaq(null)}
-        title="Delete FAQ"
+        title="Delete Knowledge"
         footer={
           <>
             <Button variant="ghost" onClick={() => setDeleteFaq(null)}>Cancel</Button>
@@ -130,7 +130,7 @@ export default function FolderDetailPage() {
             <AlertTriangle size={20} />
           </div>
           <div>
-            <p className="text-sm text-accent font-medium">Are you sure you want to delete this FAQ?</p>
+            <p className="text-sm text-accent font-medium">Are you sure you want to delete this knowledge entry?</p>
             <p className="text-sm text-muted mt-1">{deleteFaq?.question}</p>
           </div>
         </div>

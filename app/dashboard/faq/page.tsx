@@ -50,7 +50,7 @@ export default function FAQDirectoryPage() {
         <div>
           <h2 className="text-lg font-semibold text-accent">Knowledge Folders</h2>
           <p className="text-xs text-muted mt-0.5">
-            Browse and manage FAQ topic clusters.
+            Browse and manage knowledge topic clusters.
           </p>
         </div>
         <div className="flex items-center gap-2">
