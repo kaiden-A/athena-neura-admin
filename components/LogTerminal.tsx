@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import type { LogEntry } from '@/lib/types'
+import { useEffect, useRef } from 'react'
+import { useLogs } from '@/lib/queries'
 
 const levelColors: Record<string, string> = {
   INFO: 'text-blue-400',
@@ -11,12 +11,8 @@ const levelColors: Record<string, string> = {
 }
 
 export default function LogTerminal() {
-  const [logs, setLogs] = useState<LogEntry[]>([])
+  const { data: logs = [] } = useLogs()
   const bottomRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    fetch('/api/logs').then((r) => r.json()).then((d) => setLogs(d.logs))
-  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

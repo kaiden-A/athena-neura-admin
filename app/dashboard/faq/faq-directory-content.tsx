@@ -9,6 +9,8 @@ import CreateFolderModal from '@/components/folders/CreateFolderModal'
 import FAQModal from '@/components/faqs/FAQModal'
 import StatsBar from '@/components/StatsBar'
 import { useGlobalSearch } from '@/lib/search-context'
+import { useFolders } from '@/lib/queries'
+import { useQueryClient } from '@tanstack/react-query'
 import type { KnowledgeFolder } from '@/lib/types'
 
 export default function FAQDirectoryContent({
@@ -17,16 +19,12 @@ export default function FAQDirectoryContent({
   initialFolders: KnowledgeFolder[]
 }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { globalSearch, setGlobalSearch } = useGlobalSearch()
-  const [folders, setFolders] = useState<KnowledgeFolder[]>(initialFolders)
+  const { data: folders = initialFolders } = useFolders()
   const [filtered, setFiltered] = useState<KnowledgeFolder[]>(initialFolders)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [faqModalOpen, setFaqModalOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
-
-  useEffect(() => {
-    fetch('/api/folders').then((r) => r.json()).then((d) => setFolders(d.folders))
-  }, [refreshKey])
 
   useEffect(() => {
     if (!globalSearch.trim()) {
@@ -45,7 +43,7 @@ export default function FAQDirectoryContent({
 
   function handleReset() {
     setGlobalSearch('')
-    setRefreshKey((k) => k + 1)
+    queryClient.invalidateQueries({ queryKey: ['folders'] })
   }
 
   return (
@@ -79,13 +77,13 @@ export default function FAQDirectoryContent({
       <CreateFolderModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onCreated={() => setRefreshKey((k) => k + 1)}
+        onCreated={() => queryClient.invalidateQueries({ queryKey: ['folders'] })}
       />
 
       <FAQModal
         open={faqModalOpen}
         onClose={() => setFaqModalOpen(false)}
-        onSaved={() => setRefreshKey((k) => k + 1)}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ['folders'] })}
       />
     </div>
   )

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { useSignup } from '@/lib/mutations'
 
 interface SignupFormProps {
   onSuccess: (email: string) => void
@@ -10,32 +11,22 @@ interface SignupFormProps {
 }
 
 export default function SignupForm({ onSuccess, onError }: SignupFormProps) {
+  const signup = useSignup()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     onError('')
 
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    })
-
-    const result = await res.json()
-
-    if (!res.ok) {
-      onError(result.error || 'Signup failed.')
-      setLoading(false)
-      return
-    }
-
-    onSuccess(result.email)
-    setLoading(false)
+    signup.mutate(
+      { name, email, password },
+      {
+        onSuccess: (data) => onSuccess(data.email),
+        onError: (err) => onError(err.message),
+      }
+    )
   }
 
   return (
@@ -77,8 +68,8 @@ export default function SignupForm({ onSuccess, onError }: SignupFormProps) {
           minLength={6}
         />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Creating account...' : 'Request Access'}
+      <Button type="submit" className="w-full" disabled={signup.isPending}>
+        {signup.isPending ? 'Creating account...' : 'Request Access'}
       </Button>
     </form>
   )

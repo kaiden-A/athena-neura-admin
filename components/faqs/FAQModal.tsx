@@ -6,7 +6,9 @@ import Button from '@/components/ui/Button'
 import { Input, Textarea, Select } from '@/components/ui/Input'
 import VisibilityToggle from '@/components/ui/VisibilityToggle'
 import { useToast } from '@/lib/toast-context'
-import type { FAQArticle, FAQVisibility, KnowledgeFolder } from '@/lib/types'
+import { useFolders } from '@/lib/queries'
+import { useCreateFAQ, useUpdateFAQ } from '@/lib/mutations'
+import type { FAQArticle, FAQVisibility } from '@/lib/types'
 
 interface FAQModalProps {
   open: boolean
@@ -18,7 +20,9 @@ interface FAQModalProps {
 
 export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedFolderId }: FAQModalProps) {
   const { showToast } = useToast()
-  const [folders, setFolders] = useState<KnowledgeFolder[]>([])
+  const { data: folders = [] } = useFolders()
+  const createFaq = useCreateFAQ(preselectedFolderId)
+  const updateFaq = useUpdateFAQ(editFaq?.folderId)
   const [topicId, setTopicId] = useState(preselectedFolderId || '')
   const [isVerified, setIsVerified] = useState(false)
   const [visibility, setVisibility] = useState<FAQVisibility>('public')
@@ -30,7 +34,6 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
 
   useEffect(() => {
     if (open) {
-      fetch('/api/folders').then((r) => r.json()).then((d) => setFolders(d.folders))
       if (editFaq) {
         setTopicId(editFaq.folderId)
         setIsVerified(editFaq.isVerified)
@@ -51,37 +54,24 @@ export default function FAQModal({ open, onClose, onSaved, editFaq, preselectedF
     if (!topicId || !question.trim() || !answer.trim()) return
     setSubmitting(true)
     try {
-      let res: Response
-
       if (isEditing && editFaq) {
-        res = await fetch(`/api/faqs/${editFaq.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            topicId,
-            question: question.trim(),
-            answer: answer.trim(),
-            visibility,
-            assistant: '',
-          }),
+        await updateFaq.mutateAsync({
+          id: editFaq.id,
+          topicId,
+          question: question.trim(),
+          answer: answer.trim(),
+          visibility,
+          assistant: '',
         })
       } else {
-        res = await fetch('/api/faqs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            topicId,
-            question: question.trim(),
-            answer: answer.trim(),
-            visibility,
-          }),
+        await createFaq.mutateAsync({
+          topicId,
+          question: question.trim(),
+          answer: answer.trim(),
+          visibility,
         })
       }
-
-      const result = await res.json()
-      if (!res.ok) throw new Error(result.error || 'Failed to save Knowledge.')
       showToast(isEditing ? 'Knowledge updated successfully.' : 'Knowledge created successfully.')
-
       onSaved()
       onClose()
     } catch (err: unknown) {

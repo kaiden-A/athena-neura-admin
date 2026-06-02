@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useRouter } from 'next/navigation'
+import { useLogin } from '@/lib/mutations'
 
 interface LoginFormProps {
   onError: (msg: string) => void
@@ -11,30 +12,21 @@ interface LoginFormProps {
 
 export default function LoginForm({ onError }: LoginFormProps) {
   const router = useRouter()
+  const login = useLogin()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     onError('')
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-
-    const result = await res.json()
-
-    if (!res.ok) {
-      onError(result.error || 'Login failed.')
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard')
+    login.mutate(
+      { email, password },
+      {
+        onSuccess: () => router.push('/dashboard'),
+        onError: (err) => onError(err.message),
+      }
+    )
   }
 
   return (
@@ -63,8 +55,8 @@ export default function LoginForm({ onError }: LoginFormProps) {
           required
         />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Signing in...' : 'Sign in'}
+      <Button type="submit" className="w-full" disabled={login.isPending}>
+        {login.isPending ? 'Signing in...' : 'Sign in'}
       </Button>
     </form>
   )

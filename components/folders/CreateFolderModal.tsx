@@ -5,6 +5,7 @@ import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { useToast } from '@/lib/toast-context'
+import { useCreateFolder } from '@/lib/mutations'
 
 interface CreateFolderModalProps {
   open: boolean
@@ -14,6 +15,7 @@ interface CreateFolderModalProps {
 
 export default function CreateFolderModal({ open, onClose, onCreated }: CreateFolderModalProps) {
   const { showToast } = useToast()
+  const createFolder = useCreateFolder()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -22,16 +24,10 @@ export default function CreateFolderModal({ open, onClose, onCreated }: CreateFo
     if (!name.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch('/api/folders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          description: description.trim(),
-        }),
+      await createFolder.mutateAsync({
+        name: name.trim(),
+        description: description.trim(),
       })
-      const result = await res.json()
-      if (!res.ok) throw new Error(result.error || 'Failed to create folder.')
       showToast('Folder created successfully.')
       onCreated()
       onClose()

@@ -7,6 +7,7 @@ import ToastContainer from '@/components/ui/Toast'
 import FAQModal from '@/components/faqs/FAQModal'
 import { ToastProvider } from '@/lib/toast-context'
 import { SearchProvider } from '@/lib/search-context'
+import QueryProvider from '@/lib/providers'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [faqModalOpen, setFaqModalOpen] = useState(false)
@@ -14,6 +15,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <ToastProvider>
       <SearchProvider>
+        <QueryProvider>
         <div className="flex h-screen overflow-hidden bg-bg">
           <Sidebar onNewEntry={() => setFaqModalOpen(true)} />
           <div className="flex-1 flex flex-col overflow-hidden">
@@ -28,6 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             window.location.reload()
           }}
         />
+        </QueryProvider>
       </SearchProvider>
       <ToastContainer />
     </ToastProvider>

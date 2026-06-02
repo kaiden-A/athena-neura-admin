@@ -1,32 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { Stats } from '@/lib/types'
-
-async function fetchStats(): Promise<Stats | null> {
-  try {
-    const res = await fetch('/api/stats')
-    if (!res.ok) return null
-    const data = await res.json()
-    if (typeof data.totalArticles === 'number' && typeof data.totalFolders === 'number') {
-      return data
-    }
-  } catch {}
-  return null
-}
+import { useStats } from '@/lib/queries'
 
 export default function StatsBar() {
-  const [stats, setStats] = useState<Stats | null>(null)
-
-  useEffect(() => {
-    fetchStats().then(setStats)
-
-    const interval = setInterval(() => {
-      fetchStats().then(setStats)
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [])
+  const { data: stats } = useStats()
 
   return (
     <div className="flex items-center gap-6 text-xs text-muted">

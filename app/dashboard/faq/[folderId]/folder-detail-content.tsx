@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Plus, Search, AlertTriangle } from 'lucide-react'
 import Button from '@/components/ui/Button'
@@ -9,6 +9,9 @@ import Modal from '@/components/ui/Modal'
 import FAQList from '@/components/faqs/FAQList'
 import FAQModal from '@/components/faqs/FAQModal'
 import { useToast } from '@/lib/toast-context'
+import { useFAQs } from '@/lib/queries'
+import { useDeleteFAQ } from '@/lib/mutations'
+import { useQueryClient } from '@tanstack/react-query'
 import type { KnowledgeFolder, FAQArticle } from '@/lib/types'
 
 export default function FolderDetailContent({
@@ -21,26 +24,16 @@ export default function FolderDetailContent({
   folderId: string
 }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { showToast } = useToast()
-
-  const [folder, setFolder] = useState<KnowledgeFolder | null>(initialFolder)
-  const [faqs, setFaqs] = useState<FAQArticle[]>(initialFaqs)
   const [searchQuery, setSearchQuery] = useState('')
+  const { data: faqs = initialFaqs } = useFAQs(folderId, searchQuery)
+  const deleteFaqMutation = useDeleteFAQ(folderId)
+
+  const [folder] = useState<KnowledgeFolder | null>(initialFolder)
   const [faqModalOpen, setFaqModalOpen] = useState(false)
   const [editFaq, setEditFaq] = useState<FAQArticle | null>(null)
   const [deleteFaq, setDeleteFaq] = useState<FAQArticle | null>(null)
-
-  function loadFAQs() {
-    const params = new URLSearchParams()
-    if (folderId) params.set('folderId', folderId)
-    if (searchQuery) params.set('q', searchQuery)
-    fetch(`/api/faqs?${params}`).then((r) => r.json()).then((d) => setFaqs(d.faqs))
-  }
-
-  useEffect(() => {
-    const timer = setTimeout(() => loadFAQs(), 200)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
 
   function handleEdit(faq: FAQArticle) {
     setEditFaq(faq)
@@ -53,14 +46,13 @@ export default function FolderDetailContent({
 
   async function confirmDelete() {
     if (!deleteFaq) return
-    await fetch(`/api/faqs/${deleteFaq.id}`, { method: 'DELETE' })
+    await deleteFaqMutation.mutateAsync(deleteFaq.id)
     showToast('Knowledge deleted successfully.')
     setDeleteFaq(null)
-    loadFAQs()
   }
 
   function handleSaved() {
-    loadFAQs()
+    queryClient.invalidateQueries({ queryKey: ['faqs', folderId] })
   }
 
   if (!folder) {

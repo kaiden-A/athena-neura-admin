@@ -2,8 +2,9 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { BookOpen, Terminal, Code, Activity, Plus, LogOut, User } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import type { User as UserType } from '@/lib/types'
+import { useCurrentUser } from '@/lib/queries'
+import { useLogout } from '@/lib/mutations'
+import { useQueryClient } from '@tanstack/react-query'
 
 const navItems = [
   { label: 'Knowledge', icon: BookOpen, section: 'faq' },
@@ -19,16 +20,9 @@ interface SidebarProps {
 export default function Sidebar({ onNewEntry }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState<UserType | null>(null)
-
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (data?.user) setUser(data.user)
-      })
-      .catch(() => {})
-  }, [])
+  const queryClient = useQueryClient()
+  const { data: user } = useCurrentUser()
+  const logout = useLogout()
 
   const activeSection = pathname.split('/')[2] || 'faq'
 
@@ -36,9 +30,13 @@ export default function Sidebar({ onNewEntry }: SidebarProps) {
     router.push(`/dashboard/${section === 'faq' ? '' : section}`)
   }
 
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
+  function handleLogout() {
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.clear()
+        router.push('/login')
+      },
+    })
   }
 
   return (
