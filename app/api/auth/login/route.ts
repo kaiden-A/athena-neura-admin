@@ -34,7 +34,6 @@ export async function POST(request: Request) {
   const accessToken = json.access_token || json.token
 
   const decoded = await decodeJWTPayload(accessToken)
-  console.log(decoded);
 
   const response = NextResponse.json({
     user: {

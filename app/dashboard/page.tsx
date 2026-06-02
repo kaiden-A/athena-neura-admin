@@ -1,14 +1,11 @@
-'use client'
+import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Athena-Neura Knowledge Base Dashboard',
+}
 
 export default function DashboardPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.replace('/dashboard/faq')
-  }, [router])
-
-  return null
+  redirect('/dashboard/faq')
 }

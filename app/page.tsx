@@ -1,19 +1,27 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { jwtVerify } from 'jose'
+import type { Metadata } from 'next'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
 
-export default function Home() {
-  const router = useRouter()
+export const metadata: Metadata = {
+  title: 'Athena-Neura',
+  description: 'Athena-Neura Knowledge Base Explorer',
+}
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => {
-        if (res.ok) router.replace('/dashboard')
-        else router.replace('/login')
-      })
-      .catch(() => router.replace('/login'))
-  }, [router])
+export default async function Home() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth-token')?.value
 
-  return null
+  let isValid = false
+  if (token) {
+    try {
+      await jwtVerify(token, JWT_SECRET)
+      isValid = true
+    } catch {}
+  }
+
+  if (isValid) redirect('/dashboard')
+  redirect('/login')
 }
