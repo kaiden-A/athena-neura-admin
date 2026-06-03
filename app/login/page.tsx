@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import type { Metadata } from 'next'
 import LoginPageContent from './login-content'
+import QueryProvider from '@/lib/providers'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
 
@@ -28,7 +29,9 @@ export default async function LoginPage() {
 
   return (
     <Suspense fallback={null}>
-      <LoginPageContent />
+      <QueryProvider>
+        <LoginPageContent />
+      </QueryProvider>
     </Suspense>
   )
 }
